@@ -122,8 +122,8 @@ class LogInViewController: UIViewController, UITextFieldDelegate {
         super.viewDidLoad()
         configure()
         layout()
-        loginTextField.text = "1@mail.ru"
-        passwordTextField.text = "111111"
+        //loginTextField.text = "1@mail.ru"
+        //passwordTextField.text = "111111"
     }
     
     override func viewWillAppear(_ animated: Bool) {
