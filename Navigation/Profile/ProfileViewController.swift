@@ -37,18 +37,10 @@ class ProfileViewController: UIViewController {
         super.viewDidLoad()
         self.view.backgroundColor = .white
         configure()
-        setupGestures()
+        //setupGestures()
         self.navigationController?.isNavigationBarHidden = false
+        self.navigationItem.setHidesBackButton(true, animated: true)
         self.navigationItem.title = "Новости"
-    }
-    
-    private func setupGestures() {
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(tapAction))
-        profileHeaderView.addGestureRecognizer(tapGesture)
-    }
-    
-    @objc private func tapAction(){
-        print(#function)
     }
     
     private func configure() {

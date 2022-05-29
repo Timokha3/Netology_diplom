@@ -10,6 +10,8 @@ import UIKit
 
 class ProfileHeaderView: UIView, UITextFieldDelegate {
     private var statusText: String = ""
+    lazy var avatarPosition = avatarImage.layer.position
+    lazy var avatarBounds = avatarImage.layer.bounds
     
     private lazy var avatarImage: UIImageView = {
         let img = UIImageView()
@@ -17,9 +19,19 @@ class ProfileHeaderView: UIView, UITextFieldDelegate {
         img.image = UIImage(named: "avatar")
         img.layer.cornerRadius = 50
         img.clipsToBounds = true
+        img.contentMode = .scaleAspectFit
         img.layer.borderWidth = 3.0
         img.layer.borderColor = UIColor.white.cgColor
+        img.backgroundColor = .black.withAlphaComponent(0.8)
         return img
+    }()
+    
+    private lazy var avatarView: UIView = {
+        let avatarView = UIView ()
+        avatarView.backgroundColor = .black
+        avatarView.alpha = 0.5
+        avatarView.translatesAutoresizingMaskIntoConstraints = false
+        return avatarView
     }()
     
     private lazy var button: UIButton = {
@@ -80,6 +92,16 @@ class ProfileHeaderView: UIView, UITextFieldDelegate {
         return l
     }()
     
+    private lazy var buttonClose: UIButton = {
+        var b = UIButton()
+        b.translatesAutoresizingMaskIntoConstraints = false
+        b.setImage(UIImage(systemName: "multiply.circle.fill"), for: .normal)
+        b.layer.masksToBounds = false
+        b.addTarget(self, action: #selector(closeAction), for: .touchUpInside)
+        b.alpha = 0
+        return b
+    }()
+    
     private lazy var infoLabel: UILabel = {
         var l = UILabel()
         l.text = "Waiting for something..."
@@ -97,10 +119,53 @@ class ProfileHeaderView: UIView, UITextFieldDelegate {
         return result
     }
     
+    private func setupGestures() {
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(tapAction))
+        self.avatarImage.isUserInteractionEnabled = true
+        self.avatarImage.addGestureRecognizer(tapGesture)
+    }
+    
+    @objc func tapAction(){
+        avatarPosition = avatarImage.layer.position
+        avatarBounds = avatarImage.layer.bounds
+        
+        let centerScreen = UIScreen.main.bounds.height / 2 - 100
+        print(#function + ")")
+        UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0, options: .curveEaseInOut) {
+            self.avatarImage.center.y = centerScreen
+            self.avatarImage.center.x = self.center.x
+            self.avatarImage.layer.cornerRadius = 0
+            self.avatarImage.layer.borderWidth = 0
+            self.avatarImage.layer.bounds = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
+            self.layoutIfNeeded()
+        } completion: { _ in
+            self.avatarImage.isUserInteractionEnabled = false
+            self.buttonClose.alpha = 1
+            self.buttonClose.isUserInteractionEnabled = true
+            self.layoutIfNeeded()
+        }
+    }
+    
+    @objc private func closeAction() {
+        print(#function)
+        UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0, options: .curveEaseInOut) {
+            self.buttonClose.alpha = 0
+            self.buttonClose.isUserInteractionEnabled = false
+            self.avatarImage.layer.cornerRadius = 50
+            self.avatarImage.layer.borderWidth = 3
+            self.avatarImage.layer.position = self.avatarPosition
+            self.avatarImage.layer.bounds = self.avatarBounds
+            self.avatarImage.isUserInteractionEnabled = true
+            self.layoutIfNeeded()
+        }
+    }
+    
     init() {
         super.init(frame: .zero)
         self.setup()
+        setupGestures()
     }
+    
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
@@ -110,14 +175,14 @@ class ProfileHeaderView: UIView, UITextFieldDelegate {
         let inset: CGFloat = 16
         statusTextField.addTarget(self, action: #selector(statusTextChanged), for: .editingChanged)
         
-        [avatarImage, nameLabel, infoLabel, statusTextField, button].forEach {
+        [nameLabel, infoLabel, statusTextField, button, avatarImage, buttonClose].forEach {
             self.addSubview($0)
         }
         
         NSLayoutConstraint.activate([
             // avatar
             self.avatarImage.topAnchor.constraint(equalTo: self.safeAreaLayoutGuide.topAnchor, constant: inset),
-            self.avatarImage.leadingAnchor.constraint(equalTo: self.safeAreaLayoutGuide.leadingAnchor, constant: inset),
+            self.self.avatarImage.leadingAnchor.constraint(equalTo: self.safeAreaLayoutGuide.leadingAnchor, constant: inset),
             self.avatarImage.widthAnchor.constraint(equalToConstant: 100),
             self.avatarImage.heightAnchor.constraint(equalToConstant: 100),
             // name
@@ -141,7 +206,12 @@ class ProfileHeaderView: UIView, UITextFieldDelegate {
             self.button.trailingAnchor.constraint(equalTo: self.safeAreaLayoutGuide.trailingAnchor, constant: -inset),
             self.button.heightAnchor.constraint(equalToConstant: 50),
             
-            self.bottomAnchor.constraint(equalTo: self.button.bottomAnchor, constant: inset)
+            self.bottomAnchor.constraint(equalTo: self.button.bottomAnchor, constant: inset),
+            //button
+            self.buttonClose.topAnchor.constraint(equalTo: self.safeAreaLayoutGuide.topAnchor, constant: 8),
+            self.buttonClose.trailingAnchor.constraint(equalTo: self.safeAreaLayoutGuide.trailingAnchor, constant: -8),
+            self.buttonClose.heightAnchor.constraint(equalToConstant: 40),
+            self.buttonClose.widthAnchor.constraint(equalToConstant: 40)
             
         ])
     }
